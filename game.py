@@ -9,6 +9,7 @@ PLAYER_W, PLAYER_H = 36, 36
 PLATFORM_H = 14
 COIN_R = 7
 LIVES_START = 3
+coin_sparkles = []
 
 
 def platform_color(index, total):
@@ -38,7 +39,7 @@ def moving_platform_speed(index, total):
 
 def on_coin_collected(coin, score):
     """Called the instant the player collects a coin, after its value has been added to the score. Add a sound or sparkle here."""
-    pass
+    coin_sparkles.append((pygame.Vector2(coin.pos), pygame.time.get_ticks()))
 
 
 class Platform:
@@ -197,8 +198,18 @@ class Game:
             plat.draw(screen, self.cam_y)
         for coin in self.coins:
             coin.draw(screen, self.cam_y)
-        self.player.draw(screen, self.cam_y)
 
+        current_time = pygame.time.get_ticks()
+        for pos, start_time in coin_sparkles[:]:
+            elapsed = current_time - start_time
+            if elapsed < 300:
+                radius = 7 + elapsed // 30
+                center = (int(pos.x), int(pos.y - self.cam_y))
+                pygame.draw.circle(screen, (255, 230, 100), center, radius, 2)
+            else:
+                coin_sparkles.remove((pos, start_time))
+
+        self.player.draw(screen, self.cam_y)  
         hud = self.font.render(f"Height: {self.height}m  Coins: {self.coin_score // 50}  Lives: {self.lives}", True, (200, 200, 200))
         screen.blit(hud, (10, 10))
 
